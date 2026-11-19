@@ -11,7 +11,7 @@ import java.security.MessageDigest;
 public class DbHelper extends SQLiteOpenHelper {
 
     public DbHelper(Context c) {
-        super(c, "gastos.db", null, 1);
+        super(c, "gastos.db", null, 2);
     }
 
     @Override
@@ -20,14 +20,16 @@ public class DbHelper extends SQLiteOpenHelper {
                 + "username TEXT UNIQUE NOT NULL, password TEXT NOT NULL)");
         db.execSQL("CREATE TABLE expenses (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "user_id INTEGER NOT NULL, concept TEXT NOT NULL, "
-                + "amount REAL NOT NULL, date TEXT NOT NULL)");
+                + "amount REAL NOT NULL, category TEXT NOT NULL DEFAULT 'Otros', "
+                + "date TEXT NOT NULL)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
-        db.execSQL("DROP TABLE IF EXISTS users");
-        db.execSQL("DROP TABLE IF EXISTS expenses");
-        onCreate(db);
+        // v1 -> v2: se agrega la columna category sin borrar los datos existentes
+        if (oldV < 2) {
+            db.execSQL("ALTER TABLE expenses ADD COLUMN category TEXT NOT NULL DEFAULT 'Otros'");
+        }
     }
 
     /** Devuelve false si el usuario ya existe. */
